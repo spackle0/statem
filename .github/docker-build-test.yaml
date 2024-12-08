@@ -1,0 +1,84 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+  actions: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build test image
+        run: |
+          docker buildx build \
+            --target testing \
+            --cache-from=type=registry,ref=ghcr.io/${{ github.repository }}/status-tiles-test:cache \
+            --cache-to=type=inline \
+            -t ghcr.io/${{ github.repository }}/status-tiles-test:latest \
+            --push .
+
+      - name: Run tests with coverage
+        env:
+          COVERAGE: 85
+        run: |
+          echo "COVERAGE=${{ env.COVERAGE }}"
+          docker run --rm \
+            -e COVERAGE=${{ env.COVERAGE }} \
+            ghcr.io/${{ github.repository }}/status-tiles-test:latest
+
+      - name: Generate coverage report
+        if: success()
+        run: |
+          container_id=$(docker run -d --entrypoint "" \
+            ghcr.io/${{ github.repository }}/status-tiles-test:latest \
+            sh -c "poetry run pytest --tb=short --cov=status-tiles --cov-report=html tests")
+          docker wait $container_id
+          docker cp $container_id:/app/coverage_html_report ./coverage_html_report
+          docker rm $container_id
+          tar -czf coverage-html.tar.gz coverage_html_report
+
+      - name: Upload coverage report
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage-html.tar.gz
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
