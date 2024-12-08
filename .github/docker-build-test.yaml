@@ -4,18 +4,26 @@ on:
   push:
     branches:
       - main
+      - 'ST-**'
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+  release:
+    types: [published, unpublished, created, edited, deleted]
 
 permissions:
   contents: read
   packages: write
   actions: read
+  # Required for Dependabot
+  pull-requests: write
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Allow Dependabot to run tests
+    if: (github.actor == 'dependabot[bot]') || (github.actor != 'dependabot[bot]')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,6 +40,8 @@ jobs:
           buildkitd-flags: --debug
 
       - name: Log in to GitHub Container Registry
+        # Skip registry login for Dependabot PRs as they can't access secrets
+        if: github.actor != 'dependabot[bot]'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -46,14 +56,18 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
             type=sha,format=long
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
       - name: Build test image
         uses: docker/build-push-action@v5
         with:
           context: .
           target: testing
-          push: true
+          # Only push if not Dependabot
+          push: ${{ github.actor != 'dependabot[bot]' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
@@ -98,12 +112,25 @@ jobs:
           files: ./coverage_html_report/coverage.xml
           fail_ci_if_error: true
 
+      # Auto-merge Dependabot PRs for minor/patch updates if tests pass
+      - name: Auto-merge Dependabot PR
+        if: success() && github.actor == 'dependabot[bot]'
+        run: |
+          gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
   security:
     runs-on: ubuntu-latest
+    # Allow Dependabot to run security checks
+    if: (github.actor == 'dependabot[bot]') || (github.actor != 'dependabot[bot]')
     steps:
       - uses: actions/checkout@v4
 
       - name: Run Snyk to check for vulnerabilities
+        # Skip Snyk for Dependabot PRs as they can't access secrets
+        if: github.actor != 'dependabot[bot]'
         uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
