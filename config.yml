@@ -1,0 +1,37 @@
+# config.yml
+# Configure the services you want to monitor
+services:
+  - name: "GitHub Status"
+    type: "rss"
+    config:
+      name: "GitHub"
+      feed_url: "https://www.githubstatus.com/history.rss"
+      timeout: 30
+    polling_interval: 300
+
+  - name: "AWS Status"
+    type: "rss"
+    config:
+      name: "AWS"
+      feed_url: "https://status.aws.amazon.com/rss/all.rss"
+      timeout: 30
+    polling_interval: 300
+
+  - name: "CloudFlare Status"
+    type: "rss"
+    config:
+      name: "CloudFlare"
+      feed_url: "https://www.cloudflarestatus.com/history.rss"
+      timeout: 30
+    polling_interval: 300
+
+#   - name: "Example API"
+#     type: "http"
+#     config:
+#       name: "Example API"
+#       url: "https://api.example.com/health"
+#       method: "GET"
+#       timeout: 30
+#       expected_status: 200
+#       headers:
+#         Accept: "application/json"
