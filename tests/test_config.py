@@ -17,7 +17,7 @@ def test_app_config_defaults():
     """Test default configuration values"""
     config = AppConfig()
     assert isinstance(config.log, LogConfig)
-    assert config.services == {}
+    assert config.services == []  # Changed from {} to [] as services is now a List
 
 
 def test_config_from_yaml(config_file):
@@ -25,6 +25,10 @@ def test_config_from_yaml(config_file):
     config = AppConfig.from_yaml(config_file)
     assert config.log.level == "INFO"
     assert len(config.services) > 0
+    assert isinstance(config.services, list)  # Verify it's a list
+    first_service = config.services[0]
+    assert "name" in first_service.config
+    assert "type" in first_service.model_dump()
 
 
 def test_get_config_caching(config_file):
@@ -39,3 +43,4 @@ def test_get_config_missing_file():
     config = get_config("nonexistent.yml")
     assert isinstance(config, AppConfig)
     assert config.log.level == "INFO"
+    assert config.services == []  # Changed from {} to [] here too

@@ -1,49 +1,71 @@
-# status_tiles/config.py
-from copy import deepcopy
+import logging
+from functools import lru_cache
 from pathlib import Path
-from typing import Annotated, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from pydantic import Field
-from pydantic_settings import BaseSettings
-
-DEFAULT_CONFIGS = {
-    "http_check": {"url": "https://example.com", "timeout": 5, "name": "Example Website"},
-    "system_check": {"cpu_threshold": 90.0, "memory_threshold": 90.0},
-}
+import yaml
+from pydantic import BaseModel, field_validator
 
 
-class Settings(BaseSettings):
-    """Application settings"""
+class LogConfig(BaseModel):
+    level: str = "INFO"
+    format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
-    # App configuration
-    debug: bool = False
-    app_name: str = "Status Tiles"
-
-    # Server configuration
-    host: str = "0.0.0.0"
-    port: int = 8000
-
-    # Logging configuration
-    log_level: str = "INFO"
-    log_file: Optional[str] = None
-
-    # Plugin configuration
-    plugin_configs: Annotated[dict[str, dict[str, Any]], Field(
-            default_factory=lambda: deepcopy(DEFAULT_CONFIGS)
-    )]
-    # Check intervals (in seconds)
-    check_interval: int = 60
-    refresh_interval: int = 30
-
-    # Cache configuration
-    cache_ttl: int = 30
-
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    @field_validator("level")
+    def validate_level(cls, v):
+        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        if v.upper() not in valid_levels:
+            raise ValueError(f"Log level must be one of {valid_levels}")
+        return v.upper()
 
 
-def get_settings() -> Settings:
-    """Get application settings"""
-    env_file = Path(".env")
-    if not env_file.exists():
-        print("Warning: .env file not found, using default settings")
-    return Settings()
+class ServiceConfig(BaseModel):
+    name: str
+    type: str
+    config: Dict[str, Any]
+    polling_interval: int = 300
+
+
+class AppConfig(BaseModel):
+    log: LogConfig = LogConfig()
+    services: List[ServiceConfig] = []
+
+    @classmethod
+    def from_yaml(cls, path: Path | str) -> "AppConfig":
+        """Load configuration from YAML file"""
+        path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError(f"Configuration file not found: {path}")
+
+        with open(path) as f:
+            config_data = yaml.safe_load(f)
+
+        return cls(**config_data)
+
+
+@lru_cache()
+def get_config(config_path: Optional[Path | str] = None) -> AppConfig:
+    """
+    Get application configuration, using cached values if available.
+
+    Args:
+        config_path: Optional path to config file. If not provided,
+                    looks for config.yml in current directory.
+    """
+    if config_path is None:
+        config_path = Path("config.yml")
+
+    try:
+        return AppConfig.from_yaml(config_path)
+    except Exception as e:
+        logging.error(f"Error loading configuration: {e}")
+        # Return default configuration
+        return AppConfig()
+
+
+def load_config(config_path: Path | str = "config.yml") -> AppConfig:
+    """
+    Load configuration from YAML file. This is a non-cached version
+    that's useful for testing and reloading config.
+    """
+    return AppConfig.from_yaml(config_path)
