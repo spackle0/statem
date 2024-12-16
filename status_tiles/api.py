@@ -40,10 +40,10 @@ async def lifespan(app: FastAPI):
         try:
             service_cfg = ServiceConfig(**service_config)
             mgr = driver.DriverManager(
-                    namespace="status_tiles.modules",
-                    name=service_cfg.type,
-                    invoke_on_load=True,
-                    invoke_args=(service_cfg.config,)
+                namespace="status_tiles.modules",
+                name=service_cfg.type,
+                invoke_on_load=True,
+                invoke_args=(service_cfg.config,),
             )
             services[service_cfg.name] = mgr.driver
             logger.info(f"Loaded service module: {service_cfg.name}")
@@ -73,20 +73,14 @@ templates = Jinja2Templates(directory=current_dir / "templates")
 @app.get("/")
 async def home(request: Request):
     """Render the main dashboard page"""
-    return templates.TemplateResponse(
-            "base.html",
-            {"request": request}
-    )
+    return templates.TemplateResponse("base.html", {"request": request})
 
 
 @app.get("/status")
 async def get_status(request: Request):
     """Endpoint for HTMX to poll for service status updates"""
     try:
-        results = await asyncio.gather(
-                *[service.get_status() for service in services.values()],
-                return_exceptions=True
-        )
+        results = await asyncio.gather(*[service.get_status() for service in services.values()], return_exceptions=True)
 
         statuses = []
         for result in results:
@@ -96,20 +90,9 @@ async def get_status(request: Request):
             if isinstance(result, ServiceState):
                 statuses.append(result)
 
-        return templates.TemplateResponse(
-                "components/status_tile.html",
-                {
-                    "request": request,
-                    "services": statuses
-                }
-        )
+        return templates.TemplateResponse("components/status_tile.html", {"request": request, "services": statuses})
     except Exception as e:
         logger.error(f"Error in status endpoint: {e}")
         return templates.TemplateResponse(
-                "components/status_tile.html",
-                {
-                    "request": request,
-                    "services": [],
-                    "error": str(e)
-                }
+            "components/status_tile.html", {"request": request, "services": [], "error": str(e)}
         )
