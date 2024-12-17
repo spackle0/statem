@@ -1,0 +1,34 @@
+<!-- status_tiles/templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Tiles</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.9.10/htmx.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Service Status Dashboard</h1>
+        </header>
+        <main>
+            <div class="status-grid"
+                 hx-get="/status"
+                 hx-trigger="load, every 5m"
+                 hx-swap="innerHTML">
+                Loading services...
+            </div>
+        </main>
+        <footer>
+            <p>Last updated: <span id="last-update"></span></p>
+        </footer>
+    </div>
+    <script>
+        htmx.on("htmx:afterSwap", function(evt) {
+            document.getElementById("last-update").textContent = new Date().toLocaleTimeString();
+        });
+    </script>
+</body>
+</html>

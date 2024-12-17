@@ -1,0 +1,18 @@
+<!-- status_tiles/templates/components/status_tile.html -->
+{% for service in services %}
+<div class="status-tile status-{{ service.status }}" id="service-{{ service.name|lower }}">
+    <h2>{{ service.name }}</h2>
+    <div class="status-indicator">{{ service.status.value|title }}</div>
+    <div class="last-checked">Last checked: {{ service.last_checked.strftime('%Y-%m-%d %H:%M:%S UTC') }}</div>
+    {% if service.details %}
+    <div class="details">
+        {% for key, value in service.details.items() %}
+        <div class="detail-item">
+            <span class="detail-label">{{ key|title }}:</span>
+            <span class="detail-value">{{ value }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
