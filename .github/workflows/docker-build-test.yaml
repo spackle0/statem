@@ -125,13 +125,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-#       - name: Run Snyk to check for vulnerabilities
-#         if: github.actor != 'dependabot[bot]'
-#         uses: snyk/actions/python@master
-#         env:
-#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-#         with:
-#           args: --severity-threshold=high
+      - name: Run Snyk to check for vulnerabilities
+        if: github.actor != 'dependabot[bot]'
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
