@@ -3,11 +3,8 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - main
-      - 'ST-**'
-  pull_request:
-    branches:
-      - main
+      - main          # When code is pushed/merged into main
+      - 'ST-**'       # When code is pushed to feature branches matching 'ST-**'
   workflow_dispatch:
   release:
     types: [published, unpublished, created, edited, deleted]
