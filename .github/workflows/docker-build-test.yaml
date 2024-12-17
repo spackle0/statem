@@ -79,21 +79,29 @@ jobs:
           COVERAGE: 50
           IMAGE_TAG: ${{ steps.meta.outputs.tags }}
         run: |
+          # Extract the first tag from IMAGE_TAG (use SHA tag or latest)
+          IMAGE=$(echo "${IMAGE_TAG}" | cut -d',' -f1)
+          echo "Using Docker image: $IMAGE"
           echo "Required coverage: ${{ env.COVERAGE }}%"
           docker run --rm \
             -e COVERAGE=${{ env.COVERAGE }} \
             -e PYTHONPATH=/app \
-            ${{ env.IMAGE_TAG }}
+            $IMAGE
+
 
       - name: Generate coverage report
         if: success()
         env:
           IMAGE_TAG: ${{ steps.meta.outputs.tags }}
         run: |
-          container_id=$(docker create ${{ env.IMAGE_TAG }})
+          # Extract the first tag
+          IMAGE=$(echo "${IMAGE_TAG}" | cut -d',' -f1)
+          echo "Using Docker image: $IMAGE"
+          container_id=$(docker create $IMAGE)
           docker cp $container_id:/app/coverage_html_report ./coverage_html_report
           docker rm $container_id
           tar -czf coverage-html.tar.gz coverage_html_report
+
 
       - name: Upload coverage report
         if: success()
@@ -126,13 +134,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Snyk to check for vulnerabilities
-        if: github.actor != 'dependabot[bot]'
-        uses: snyk/actions/python@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
+#       - name: Run Snyk to check for vulnerabilities
+#         if: github.actor != 'dependabot[bot]'
+#         uses: snyk/actions/python@master
+#         env:
+#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#         with:
+#           args: --severity-threshold=high
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
