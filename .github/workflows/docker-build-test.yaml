@@ -103,21 +103,12 @@ jobs:
           compression-level: 9
           retention-days: 7
 
-      - name: Upload coverage report
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage-html.tar.gz
-          compression-level: 9
-          retention-days: 14
-
-      - name: Upload coverage to Codecov
-        if: success()
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage_html_report/coverage.xml
-          fail_ci_if_error: true
+#       - name: Upload coverage to Codecov
+#         if: success()
+#         uses: codecov/codecov-action@v3
+#         with:
+#           files: ./coverage_html_report/coverage.xml
+#           fail_ci_if_error: true
 
       # Auto-merge Dependabot PRs for minor/patch updates if tests pass
       - name: Auto-merge Dependabot PR
