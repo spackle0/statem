@@ -87,6 +87,8 @@ jobs:
 
       - name: Generate coverage report
         if: success()
+        env:
+          IMAGE_TAG: ${{ steps.meta.outputs.tags }}
         run: |
           container_id=$(docker create ${{ env.IMAGE_TAG }})
           docker cp $container_id:/app/coverage_html_report ./coverage_html_report
