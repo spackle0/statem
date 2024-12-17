@@ -71,34 +71,37 @@ jobs:
             type=registry,ref=ghcr.io/${{ github.repository }}/status-tiles-test:cache,mode=max
             type=gha,scope=${{ github.workflow }},mode=max
 
-      - name: Run tests with coverage
+      - name: Run tests and generate coverage report
         env:
           COVERAGE: 50
           IMAGE_TAG: ${{ steps.meta.outputs.tags }}
         run: |
-          # Extract the first tag from IMAGE_TAG (use SHA tag or latest)
+          # Extract the first image tag
           IMAGE=$(echo "${IMAGE_TAG}" | cut -d',' -f1)
           echo "Using Docker image: $IMAGE"
-          echo "Required coverage: ${{ env.COVERAGE }}%"
+
+          # Run tests and save coverage report to host
+          echo "Running tests and saving coverage report..."
           docker run --rm \
             -e COVERAGE=${{ env.COVERAGE }} \
             -e PYTHONPATH=/app \
+            -v ${{ github.workspace }}/coverage_html_report:/app/coverage_html_report \
             $IMAGE
 
-
-      - name: Generate coverage report
-        if: success()
-        env:
-          IMAGE_TAG: ${{ steps.meta.outputs.tags }}
+      - name: Verify coverage report
         run: |
-          # Extract the first tag
-          IMAGE=$(echo "${IMAGE_TAG}" | cut -d',' -f1)
-          echo "Using Docker image: $IMAGE"
-          container_id=$(docker create $IMAGE)
-          docker cp $container_id:/app/coverage_html_report ./coverage_html_report
-          docker rm $container_id
+          echo "Checking generated coverage report..."
+          ls -l coverage_html_report
           tar -czf coverage-html.tar.gz coverage_html_report
 
+      - name: Upload coverage report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-html.tar.gz
+          compression-level: 9
+          retention-days: 7
 
       - name: Upload coverage report
         if: success()
