@@ -9,7 +9,7 @@
 
 
 [![CI](https://github.com/spackle0/status-tiles/actions/workflows/docker-build-test.yaml/badge.svg)](https://github.com/johndoe/my-project/actions/workflows/ci.yml)
-[![Codecov](https://codecov.io/gh/spackle0/status-tiles/branch/main/graph/badge.svg)](https://codecov.io/gh/spackle0/status-tiles)
+[![codecov](https://codecov.io/gh/spackle0/status-tiles/graph/badge.svg?token=YJVD7W9Q37)](https://codecov.io/gh/spackle0/status-tiles)
 
 [![Snyk Security](https://snyk.io/test/github/spackle0/status-tiles/badge.svg)](https://snyk.io/test/github/spackle0/status-tiles)
 [![Dependencies Status](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)](https://github.com/spackle0/status-tiles/pulls?utf8=%E2%9C%93&q=is%3Apr%20author%3Aapp%2Fdependabot)
@@ -17,3 +17,51 @@
 
 # Status Tiles
 Experiment in consolidating status notifications from third parties.
+
+## Challenge
+In my work in infrastructure I often have to keep track of the status of many
+third party serivces. This can be especially painful in an outage situation
+where I much to check multiple dashboards to get a full picture of what may be
+happening.
+
+## Solution
+This project is an experiment to consolidate multiple dashboards into a single
+page that can be easily checked.
+
+This is also to exercise my skills in FastAPI and teach myself htmx.
+
+## Running
+
+Using [go-task](https://taskfile.dev/) you can run the following commands:
+
+`task`: Show all the tasks available via the Taskfile.yaml
+
+* `task compose:dev`             Start Docker Compose services in development mode
+* `task compose:down`            Stop Docker Compose services
+* `task compose:logs`            View Docker Compose logs
+* `task compose:up`              Start Docker Compose services
+* `task docker:build`            Build the production Docker image for running the application
+* `task docker:build-test`       Build the testing Docker image for unit testing
+* `task docker:run`              Run Docker container
+* `task docker:test`             Run unit tests inside the testing Docker container
+
+Once the container is running, you can view the application at http://localhost:8000
+
+## Configuring
+
+* Copy `.env.example` to `.env` and edit any values as needed
+
+* `config.yaml` lists the services to be checked. For example:
+
+```yaml
+services:
+  - name: "GitHub Status"
+    type: "rss"
+    config:
+      name: "GitHub"
+      feed_url: "https://www.githubstatus.com/history.rss"
+      timeout: 30
+    polling_interval: 300
+```
+
+At the moment, only RSS is supported
