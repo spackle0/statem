@@ -32,18 +32,18 @@ This is also to exercise my skills in FastAPI and teach myself htmx.
 
 ## Running
 
-Using go-task you can run the following commands:
+Using [go-task](https://taskfile.dev/) you can run the following commands:
 
-task: Show all the tasks available via the Taskfile.yaml
+`task`: Show all the tasks available via the Taskfile.yaml
 
-* task compose:dev:             Start Docker Compose services in development mode
-* task compose:down:            Stop Docker Compose services
-* task compose:logs:            View Docker Compose logs
-* task compose:up:              Start Docker Compose services
-* task docker:build:            Build the production Docker image for running the application
-* task docker:build-test:       Build the testing Docker image for unit testing
-* task docker:run:              Run Docker container
-* task docker:test:             Run unit tests inside the testing Docker container
+* `task compose:dev`             Start Docker Compose services in development mode
+* `task compose:down`            Stop Docker Compose services
+* `task compose:logs`            View Docker Compose logs
+* `task compose:up`              Start Docker Compose services
+* `task docker:build`            Build the production Docker image for running the application
+* `task docker:build-test`       Build the testing Docker image for unit testing
+* `task docker:run`              Run Docker container
+* `task docker:test`             Run unit tests inside the testing Docker container
 
 Once the container is running, you can view the application at http://localhost:8000
 
