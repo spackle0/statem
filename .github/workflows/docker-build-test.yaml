@@ -1,11 +1,13 @@
 name: CI Pipeline
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
-      - main          # When code is pushed/merged into main
-      - 'ST-**'       # When code is pushed to feature branches matching 'ST-**'
-  workflow_dispatch:
+      - main          # Only run on pushes to main (post-merge)
+  workflow_dispatch:  # Allow manual triggers
   release:
     types: [published, unpublished, created, edited, deleted]
 
