@@ -19,6 +19,8 @@ permissions:
 
 jobs:
   test:
+    # Skip running tests on push events if there's an associated PR
+    if: github.event_name != 'push' || github.event.pull_request.head.sha != github.sha
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
