@@ -49,7 +49,9 @@ Once the container is running, you can view the application at http://localhost:
 
 ## Configuring
 
-The file `config.yaml` lists the services to be checked. For example:
+* Copy `.env.example` to `.env` and edit any values as needed
+
+* `config.yaml` lists the services to be checked. For example:
 
 ```yaml
 services:
