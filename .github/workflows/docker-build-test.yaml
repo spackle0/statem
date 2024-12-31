@@ -2,14 +2,7 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main          # Only run on pushes to main (post-merge)
-  workflow_dispatch:  # Allow manual triggers
-  release:
-    types: [published, unpublished, created, edited, deleted]
+    branches: [main]
 
 permissions:
   contents: read
@@ -19,8 +12,6 @@ permissions:
 
 jobs:
   test:
-    # Skip running tests on push events if there's an associated PR
-    if: github.event_name != 'push' || github.event.pull_request.head.sha != github.sha
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
