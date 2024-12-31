@@ -1,13 +1,8 @@
 name: CI Pipeline
 
 on:
-  push:
-    branches:
-      - main          # When code is pushed/merged into main
-      - 'ST-**'       # When code is pushed to feature branches matching 'ST-**'
-  workflow_dispatch:
-  release:
-    types: [published, unpublished, created, edited, deleted]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
@@ -88,12 +83,6 @@ jobs:
             -v ${{ github.workspace }}/coverage_html_report:/app/coverage_html_report \
             $IMAGE
 
-      - name: Verify coverage report
-        run: |
-          echo "Checking generated coverage report..."
-          ls -l coverage_html_report
-          tar -czf coverage-html.tar.gz coverage_html_report
-
       - name: Upload coverage report
         if: success()
         uses: actions/upload-artifact@v4
@@ -103,12 +92,15 @@ jobs:
           compression-level: 9
           retention-days: 7
 
-#       - name: Upload coverage to Codecov
-#         if: success()
-#         uses: codecov/codecov-action@v3
-#         with:
-#           files: ./coverage_html_report/coverage.xml
-#           fail_ci_if_error: true
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        if: success()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage_html_report/coverage.xml
+          fail_ci_if_error: true
+          verbose: true
+          slug: spackle0/status-tiles
 
       # Auto-merge Dependabot PRs for minor/patch updates if tests pass
       - name: Auto-merge Dependabot PR
