@@ -43,7 +43,7 @@ tasks:
   docker:build:
     desc: Build the production Docker image
     cmds:
-      - docker build --target production -t status-tiles:latest .
+      - docker build --progress plain --target production -t status-tiles:latest .
 
   docker:build-test:
     desc: Build the testing Docker image
@@ -59,7 +59,7 @@ tasks:
 
   docker:run:
     desc: Run Docker container
-    deps: [docker:build]
+    deps: ["docker:build"]
     cmds:
       - docker run -p 8000:8000 status-tiles:latest
 

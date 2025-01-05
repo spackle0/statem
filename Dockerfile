@@ -20,6 +20,9 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
 # Copy project dependency files
 COPY pyproject.toml poetry.lock ./
 
+# Create a dummy package so poetry can install the .pth file
+RUN mkdir status_tiles && touch status_tiles/__init__.py
+
 # Install project dependencies
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction
@@ -27,6 +30,8 @@ RUN poetry config virtualenvs.create false \
 # Copy application code
 COPY status_tiles ./status_tiles
 COPY config.yml ./
+
+#RUN poetry install --no-interaction --only-root
 
 ##########
 # Testing image with development dependencies
@@ -56,6 +61,7 @@ tests"]
 # Production image, lean
 ##########
 FROM base AS production
+ENV PYTHONPATH=/app
 
 # Default entry point for production
 CMD ["poetry", "run", "uvicorn", "status_tiles.main:app", "--host", "0.0.0.0", "--port", "8000"]

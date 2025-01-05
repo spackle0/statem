@@ -3,7 +3,6 @@ name = "status-tiles"
 version = "0.1.0"
 description = "A modern status board with FastAPI and HTMX"
 authors = ["Your Name <your.email@example.com>"]
-readme = "README.md"
 packages = [{include = "status_tiles"}]
 
 [tool.poetry.dependencies]
