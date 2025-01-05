@@ -22,25 +22,58 @@ class LogConfig(BaseModel):
 class ServiceConfig(BaseModel):
     name: str
     type: str
-    config: Dict[str, Any]
+    config: Dict[str, Any]  # Currently allows any values
     polling_interval: int = 300
+
+    # Add validation for known config values:
+    @field_validator("config")
+    def validate_config(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+        required_keys = {"url", "timeout"}  # example required keys
+        missing = required_keys - v.keys()
+        if missing:
+            raise ValueError(f"Missing required config keys: {missing}")
+        return v
 
 
 class AppConfig(BaseModel):
     log: LogConfig = LogConfig()
-    services: List[ServiceConfig] = []
+    services: List[ServiceConfig]
+
+    model_config = {
+        "validate_default": True,
+        "extra": "allow"
+    }
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if 'services' not in data:
+            self.services = []
 
     @classmethod
     def from_yaml(cls, path: Path | str) -> "AppConfig":
-        """Load configuration from YAML file"""
+        """Load configuration from YAML file.
+
+        Args:
+            path: Path to YAML configuration file
+
+        Returns:
+            AppConfig: Loaded configuration
+
+        Raises:
+            FileNotFoundError: If configuration file doesn't exist
+            ValidationError: If configuration is invalid
+            YAMLError: If YAML parsing fails
+        """
         path = Path(path)
-        if not path.exists():
+        # Ignore SonarQube false positive: Path.exists() is a no-argument method
+        # See: https://docs.python.org/3/library/pathlib.html#pathlib.Path.exists
+        if not path.exists(): # NOSONAR
             raise FileNotFoundError(f"Configuration file not found: {path}")
 
-        with open(path) as f:
+        with path.open() as f:
             config_data = yaml.safe_load(f)
 
-        return cls(**config_data)
+        return cls.model_validate(config_data)
 
 
 @lru_cache()
