@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import os
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Dict
@@ -49,6 +51,8 @@ async def lifespan(app: FastAPI):
             logger.info(f"Loaded service module: {service_cfg.name}")
         except Exception as e:
             logger.error(f"Failed to load service {service_config.get('name')}: {e}")
+            print(sys.path)
+            print(os.path.abspath("."))
 
     yield
 
