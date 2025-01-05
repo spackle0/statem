@@ -9,8 +9,8 @@
 
 
 [![CI](https://github.com/spackle0/status-tiles/actions/workflows/docker-build-test.yaml/badge.svg)](https://github.com/johndoe/my-project/actions/workflows/ci.yml)
-[![Codecov](https://codecov.io/gh/spackle0/status-tiles/branch/main/graph/badge.svg)](https://codecov.io/gh/spackle0/status-tiles)
 [![codecov](https://codecov.io/gh/spackle0/status-tiles/graph/badge.svg?token=YJVD7W9Q37)](https://codecov.io/gh/spackle0/status-tiles)
+
 [![Snyk Security](https://snyk.io/test/github/spackle0/status-tiles/badge.svg)](https://snyk.io/test/github/spackle0/status-tiles)
 [![Dependencies Status](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)](https://github.com/spackle0/status-tiles/pulls?utf8=%E2%9C%93&q=is%3Apr%20author%3Aapp%2Fdependabot)
 
@@ -65,3 +65,59 @@ services:
 ```
 
 At the moment, only RSS is supported
+
+## Diagram of stevedore plugins
+
+```mermaid
+flowchart TB
+    subgraph Entry_Points
+        EP[Entry Points Registry]
+        NS[status-tiles.plugins Namespace]
+        EP -->|Defines| NS
+    end
+
+    subgraph Plugin_Loading
+        DM[Driver Manager]
+        BP[BaseMonitor Plugin Interface]
+        PC[Plugin Contract]
+        CH["check() Method"]
+        VC["validate_config() Method"]
+        DM -->|Loads| BP
+        BP -->|Validates| PC
+        PC -->|Must Implement| CH
+        PC -->|Must Implement| VC
+    end
+
+    subgraph Available_Plugins
+        HTTP[HTTP Monitor]
+        TCP[TCP Monitor]
+        RSS[RSS Monitor]
+        BP -->|Instantiates| HTTP
+        BP -->|Instantiates| TCP
+        BP -->|Instantiates| RSS
+    end
+
+    subgraph Monitor_Creation
+        CR[Create Monitor Request]
+        MT[Monitor Type]
+        MI[Monitor Instance]
+        CR -->|Specifies| MT
+        MT -->|Passed to| DM
+        DM -->|Creates Instance| MI
+    end
+
+    subgraph Execution
+        SCH[Scheduler]
+        SR[Status Result]
+        SCH -->|Triggers| MI
+        MI -->|Executes| CH
+        CH -->|Returns| SR
+    end
+
+    subgraph Configuration
+        PY[pyproject.toml]
+        CFG[Monitor Config]
+        PY -->|Registers| EP
+        CFG -->|Validated by| VC
+    end
+```
