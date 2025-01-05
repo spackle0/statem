@@ -72,7 +72,7 @@ At the moment, only RSS is supported
 flowchart TB
     subgraph Entry_Points
         EP[Entry Points Registry]
-        NS[vigill.plugins Namespace]
+        NS[status-tiles.plugins Namespace]
         EP -->|Defines| NS
     end
 
