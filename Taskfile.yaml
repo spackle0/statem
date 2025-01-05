@@ -52,8 +52,7 @@ tasks:
 
   docker:test:
     desc: Run unit tests inside the testing Docker container
-    depends_on:
-      - build-test
+    deps: ["build-test"]
     cmds:
       - docker run --rm status-tiles:test
 
