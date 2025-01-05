@@ -24,14 +24,3 @@ services:
       feed_url: "https://www.cloudflarestatus.com/history.rss"
       timeout: 30
     polling_interval: 300
-
-#   - name: "Example API"
-#     type: "http"
-#     config:
-#       name: "Example API"
-#       url: "https://api.example.com/health"
-#       method: "GET"
-#       timeout: 30
-#       expected_status: 200
-#       headers:
-#         Accept: "application/json"
